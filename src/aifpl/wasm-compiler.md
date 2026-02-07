@@ -63,6 +63,7 @@
 | Pattern matching | ✅ | |
 | Built-in function calls | ✅ | |
 | General function calls | ✅ | |
+| Tail call optimization | ✅ | Uses `return_call_ref` for tail calls |
 | **Compiler Integration** | ✅ Complete | `wasm/compiler.py` |
 | AIFPL parsing | ✅ | |
 | WAT code generation | ✅ | |
@@ -72,7 +73,6 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Tail Call Optimization** | ⏳ Pending | Use WASM `return_call` for tail-recursive functions |
 | **Comprehensive Test Suite** | ⏳ Pending | Full conformance tests against interpreter |
 | **Documentation** | ⏳ Pending | API docs, usage examples |
 
@@ -527,9 +527,9 @@ The generated WASM module will have:
 4. ✅ Closures and environment capture
 5. ✅ Let bindings
 
-### Phase 5: Advanced Features (In Progress)
+### Phase 5: Advanced Features ✅ Complete
 1. ✅ Pattern matching
-2. ⏳ Tail call optimization
+2. ✅ Tail call optimization
 3. ✅ Complex numbers (arithmetic support)
 4. ✅ Bitwise operations
 

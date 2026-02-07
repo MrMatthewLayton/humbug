@@ -318,7 +318,7 @@ class AIFPLWasmCompiler:
 
             # Run with GC and function-references enabled
             result = subprocess.run(
-                [wasmtime_cmd, "run", "-W", "gc", "-W", "function-references", "--invoke", "compute", wat_file],
+                [wasmtime_cmd, "run", "-W", "gc", "-W", "function-references", "-W", "tail-call", "--invoke", "compute", wat_file],
                 capture_output=True,
                 text=True,
                 timeout=30

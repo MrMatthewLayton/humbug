@@ -53,12 +53,13 @@ class CodeGenerator:
   (i32.const {len(s)})
   (array.new_fixed $CharArray {len(s)} {char_inits}))"""
 
-    def generate_expr(self, expr: AIFPLValue, env: Optional[Set[str]] = None) -> str:
+    def generate_expr(self, expr: AIFPLValue, env: Optional[Set[str]] = None, tail_position: bool = False) -> str:
         """Generate WAT code for an AIFPL expression.
 
         Args:
             expr: The AIFPL expression to compile
             env: Set of variable names in scope (for detecting free variables)
+            tail_position: Whether this expression is in tail position (for TCO)
 
         Returns:
             WAT code that evaluates to a (ref null eq)
@@ -75,7 +76,7 @@ class CodeGenerator:
         elif isinstance(expr, AIFPLSymbol):
             return self._gen_symbol_ref(expr, env)
         elif isinstance(expr, AIFPLList):
-            return self._gen_list_expr(expr, env)
+            return self._gen_list_expr(expr, env, tail_position)
         else:
             raise ValueError(f"Unknown expression type: {type(expr)}")
 
@@ -120,7 +121,7 @@ class CodeGenerator:
         # Variable lookup from environment
         return f"(call $env_lookup (local.get $env) {self.generate_string_literal(name)})"
 
-    def _gen_list_expr(self, lst: AIFPLList, env: Set[str]) -> str:
+    def _gen_list_expr(self, lst: AIFPLList, env: Set[str], tail_position: bool = False) -> str:
         """Generate code for a list expression (function call or special form)."""
         elements = lst.elements
 
@@ -138,22 +139,22 @@ class CodeGenerator:
                 return self._gen_quote(elements[1] if len(elements) > 1 else AIFPLList([]))
 
             elif name == "if":
-                return self._gen_if(elements[1:], env)
+                return self._gen_if(elements[1:], env, tail_position)
 
             elif name == "let":
-                return self._gen_let(elements[1:], env)
+                return self._gen_let(elements[1:], env, tail_position)
 
             elif name == "lambda":
                 return self._gen_lambda(elements[1:], env)
 
             elif name == "and":
-                return self._gen_and(elements[1:], env)
+                return self._gen_and(elements[1:], env, tail_position)
 
             elif name == "or":
-                return self._gen_or(elements[1:], env)
+                return self._gen_or(elements[1:], env, tail_position)
 
             elif name == "match":
-                return self._gen_match(elements[1:], env)
+                return self._gen_match(elements[1:], env, tail_position)
 
             elif name == "alist":
                 return self._gen_alist(elements[1:], env)
@@ -163,7 +164,7 @@ class CodeGenerator:
                 return self._gen_builtin_call(name, elements[1:], env)
 
         # General function call
-        return self._gen_function_call(first, elements[1:], env)
+        return self._gen_function_call(first, elements[1:], env, tail_position)
 
     def _gen_quote(self, expr: AIFPLValue) -> str:
         """Generate code for a quote expression."""
@@ -188,14 +189,14 @@ class CodeGenerator:
         else:
             raise ValueError(f"Cannot quote: {type(expr)}")
 
-    def _gen_if(self, args: List[AIFPLValue], env: Set[str]) -> str:
+    def _gen_if(self, args: List[AIFPLValue], env: Set[str], tail_position: bool = False) -> str:
         """Generate code for an if expression."""
         if len(args) != 3:
             raise ValueError("if requires exactly 3 arguments: condition, then, else")
 
         cond = self.generate_expr(args[0], env)
-        then_branch = self.generate_expr(args[1], env)
-        else_branch = self.generate_expr(args[2], env)
+        then_branch = self.generate_expr(args[1], env, tail_position)
+        else_branch = self.generate_expr(args[2], env, tail_position)
 
         return f"""\
 (if (result (ref null eq))
@@ -203,7 +204,7 @@ class CodeGenerator:
   (then {then_branch})
   (else {else_branch}))"""
 
-    def _gen_let(self, args: List[AIFPLValue], env: Set[str]) -> str:
+    def _gen_let(self, args: List[AIFPLValue], env: Set[str], tail_position: bool = False) -> str:
         """Generate code for a let expression."""
         if len(args) < 2:
             raise ValueError("let requires bindings and body")
@@ -233,7 +234,7 @@ class CodeGenerator:
             code_parts.append(f"(local.set $env (call $env_extend (local.get $env) {name_str} {value_code}))")
             new_env.add(name)
 
-        body_code = self.generate_expr(body, new_env)
+        body_code = self.generate_expr(body, new_env, tail_position)
 
         # Wrap in a block to manage environment
         return f"""\
@@ -265,7 +266,8 @@ class CodeGenerator:
         new_env = env.copy()
         new_env.update(param_names)
 
-        body_code = self.generate_expr(body, new_env)
+        # Lambda body is always in tail position
+        body_code = self.generate_expr(body, new_env, tail_position=True)
 
         # Generate parameter binding code
         param_bindings = []
@@ -291,16 +293,16 @@ class CodeGenerator:
   (ref.func {func_name})
   (local.get $env))"""
 
-    def _gen_and(self, args: List[AIFPLValue], env: Set[str]) -> str:
+    def _gen_and(self, args: List[AIFPLValue], env: Set[str], tail_position: bool = False) -> str:
         """Generate code for lazy and."""
         if len(args) == 0:
             return "(global.get $TRUE)"
         if len(args) == 1:
-            return self.generate_expr(args[0], env)
+            return self.generate_expr(args[0], env, tail_position)
 
         # Lazy evaluation: if first is false, return false without evaluating rest
         first = self.generate_expr(args[0], env)
-        rest = self._gen_and(args[1:], env)
+        rest = self._gen_and(args[1:], env, tail_position)
 
         return f"""\
 (if (result (ref null eq))
@@ -308,16 +310,16 @@ class CodeGenerator:
   (then {rest})
   (else (global.get $FALSE)))"""
 
-    def _gen_or(self, args: List[AIFPLValue], env: Set[str]) -> str:
+    def _gen_or(self, args: List[AIFPLValue], env: Set[str], tail_position: bool = False) -> str:
         """Generate code for lazy or."""
         if len(args) == 0:
             return "(global.get $FALSE)"
         if len(args) == 1:
-            return self.generate_expr(args[0], env)
+            return self.generate_expr(args[0], env, tail_position)
 
         # Lazy evaluation: if first is true, return true without evaluating rest
         first = self.generate_expr(args[0], env)
-        rest = self._gen_or(args[1:], env)
+        rest = self._gen_or(args[1:], env, tail_position)
 
         return f"""\
 (if (result (ref null eq))
@@ -325,7 +327,7 @@ class CodeGenerator:
   (then (global.get $TRUE))
   (else {rest}))"""
 
-    def _gen_match(self, args: List[AIFPLValue], env: Set[str]) -> str:
+    def _gen_match(self, args: List[AIFPLValue], env: Set[str], tail_position: bool = False) -> str:
         """Generate code for pattern matching."""
         if len(args) < 2:
             raise ValueError("match requires expression and at least one pattern")
@@ -340,14 +342,14 @@ class CodeGenerator:
         code = f"(local.set {expr_local} {expr_code})\n"
 
         # Generate cascading if-else for patterns
-        match_code = self._gen_pattern_cases(expr_local, patterns, env)
+        match_code = self._gen_pattern_cases(expr_local, patterns, env, tail_position)
 
         return f"""\
 (block (result (ref null eq))
   {code}
   {match_code})"""
 
-    def _gen_pattern_cases(self, expr_local: str, patterns: List[AIFPLValue], env: Set[str]) -> str:
+    def _gen_pattern_cases(self, expr_local: str, patterns: List[AIFPLValue], env: Set[str], tail_position: bool = False) -> str:
         """Generate code for pattern cases."""
         if not patterns:
             return "(unreachable)  ;; No pattern matched"
@@ -372,8 +374,8 @@ class CodeGenerator:
             name_str = self.generate_string_literal(name)
             binding_code += f"(local.set $env (call $env_extend (local.get $env) {name_str} {value_code}))\n"
 
-        result_code = self.generate_expr(result, new_env)
-        rest_code = self._gen_pattern_cases(expr_local, patterns[1:], env)
+        result_code = self.generate_expr(result, new_env, tail_position)
+        rest_code = self._gen_pattern_cases(expr_local, patterns[1:], env, tail_position)
 
         return f"""\
 (if (result (ref null eq))
@@ -537,7 +539,7 @@ class CodeGenerator:
             result = f"(call {base_name} {result} {arg})"
         return result
 
-    def _gen_function_call(self, func_expr: AIFPLValue, args: List[AIFPLValue], env: Set[str]) -> str:
+    def _gen_function_call(self, func_expr: AIFPLValue, args: List[AIFPLValue], env: Set[str], tail_position: bool = False) -> str:
         """Generate code for a general function call."""
         func_code = self.generate_expr(func_expr, env)
         arg_codes = [self.generate_expr(arg, env) for arg in args]
@@ -552,10 +554,13 @@ class CodeGenerator:
 
         func_local = self.fresh_local()
 
+        # Use return_call_ref for tail calls
+        call_instruction = "return_call_ref" if tail_position else "call_ref"
+
         return f"""\
 (block (result (ref null eq))
   (local.set {func_local} {func_code})
-  (call_ref $UserFuncType
+  ({call_instruction} $UserFuncType
     {args_array}
     (struct.get $FunctionValue $env (ref.cast (ref $FunctionValue) (local.get {func_local})))
     (struct.get $FunctionValue $code (ref.cast (ref $FunctionValue) (local.get {func_local})))))"""
