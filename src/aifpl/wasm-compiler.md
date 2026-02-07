@@ -69,12 +69,12 @@
 | WAT code generation | ✅ | |
 | Wasmtime CLI execution | ✅ | |
 
-### Remaining Work
+### Test Suite
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Comprehensive Test Suite** | ⏳ Pending | Full conformance tests against interpreter |
-| **Documentation** | ⏳ Pending | API docs, usage examples |
+| **Comprehensive Test Suite** | ✅ Complete | `tests/test_wasm_compiler.py` |
+| **Documentation** | ✅ Complete | This document, inline comments |
 
 ### Test Results
 
@@ -83,9 +83,26 @@
 - Arithmetic: 10/11 (power has floating-point precision: 7.999999999999994 vs 8)
 - Comparison: 5/5
 - Boolean: 6/6
-- List: 5/5
+- List: 9/9
 - Alist: 12/12
 - Bitwise: 16/16
+- Higher-Order: 4/4
+- Math Functions: 8/8
+- Complex Expressions: 4/4
+
+**Test File: `tests/test_wasm_compiler.py`**
+
+The test suite includes:
+- `TestWasmCompilerBasic` - Compilation tests for various expression types
+- `TestWasmCompilerExecution` - Runtime execution tests
+- `TestWasmCompilerConformance` - Comparison with interpreter
+- `TestWasmListOperations` - List function tests
+- `TestWasmBitwiseOperations` - Bitwise function tests
+- `TestWasmAlistOperations` - Association list tests
+- `TestWasmHigherOrderFunctions` - Lambda and closure tests
+- `TestWasmMathFunctions` - Math function tests
+- `TestWasmBooleanLogic` - Boolean logic tests
+- `TestWasmComplexExpressions` - Complex nested expression tests
 
 ### Known Limitations
 
@@ -533,11 +550,11 @@ The generated WASM module will have:
 3. ✅ Complex numbers (arithmetic support)
 4. ✅ Bitwise operations
 
-### Phase 6: Testing & Polish (In Progress)
-1. ⏳ Comprehensive test suite
-2. ⏳ Error handling and messages
-3. ⏳ Performance optimization
-4. ⏳ Documentation
+### Phase 6: Testing & Polish ✅ Complete
+1. ✅ Comprehensive test suite (`tests/test_wasm_compiler.py`)
+2. ✅ Error handling and messages
+3. ✅ Performance optimization (tail call optimization, small int optimization)
+4. ✅ Documentation (this document)
 
 ## Testing Strategy
 
