@@ -674,4 +674,29 @@ BUILTIN_FUNCTIONS = {
     "symbol?": {"wat_name": "$is_symbol", "arity": 1},
     "function?": {"wat_name": "$is_function", "arity": 1},
     "alist?": {"wat_name": "$is_alist", "arity": 1},
+
+    # Alist operations
+    "alist-get": {"wat_name": "$aifpl_alist_get", "arity": 2},
+    "alist-set": {"wat_name": "$aifpl_alist_set", "arity": 3},
+    "alist-has?": {"wat_name": "$aifpl_alist_has", "arity": 2},
+    "alist-remove": {"wat_name": "$aifpl_alist_remove", "arity": 2},
+    "alist-keys": {"wat_name": "$aifpl_alist_keys", "arity": 1},
+    "alist-values": {"wat_name": "$aifpl_alist_values", "arity": 1},
+    "alist-length": {"wat_name": "$aifpl_alist_length", "arity": 1},
+    "alist-merge": {"wat_name": "$aifpl_alist_merge", "arity": 2},
+
+    # Bitwise operations
+    "bit-and": {"wat_name": "$aifpl_bit_and", "arity": 2},
+    "bit-or": {"wat_name": "$aifpl_bit_or", "arity": 2},
+    "bit-xor": {"wat_name": "$aifpl_bit_xor", "arity": 2},
+    "bit-not": {"wat_name": "$aifpl_bit_not", "arity": 1},
+    "bit-shift-left": {"wat_name": "$aifpl_bit_shl", "arity": 2},
+    "bit-shift-right": {"wat_name": "$aifpl_bit_shr", "arity": 2},
+    "bit-shift-right-unsigned": {"wat_name": "$aifpl_bit_shr_u", "arity": 2},
+    "bit-count": {"wat_name": "$aifpl_bit_count", "arity": 1},
+    "bit-length": {"wat_name": "$aifpl_bit_length", "arity": 1},
+    "bit-set?": {"wat_name": "$aifpl_bit_set", "arity": 2},
+    "bit-set": {"wat_name": "$aifpl_bit_set_to_1", "arity": 2},
+    "bit-clear": {"wat_name": "$aifpl_bit_clear", "arity": 2},
+    "bit-flip": {"wat_name": "$aifpl_bit_flip", "arity": 2},
 }

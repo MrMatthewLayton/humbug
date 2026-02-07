@@ -44,6 +44,15 @@
 | string-prefix?, string-suffix?, string=? | ✅ | |
 | string->list, list->string | ✅ | |
 | number->string, string->number | ✅ | |
+| **Alist Operations** | ✅ Complete | `wasm/alist.py` |
+| alist-get, alist-set, alist-has? | ✅ | |
+| alist-remove, alist-keys, alist-values | ✅ | |
+| alist-length, alist-merge | ✅ | |
+| **Bitwise Operations** | ✅ Complete | `wasm/bitwise.py` |
+| bit-and, bit-or, bit-xor, bit-not | ✅ | |
+| bit-shift-left, bit-shift-right | ✅ | |
+| bit-count, bit-length | ✅ | |
+| bit-set?, bit-set, bit-clear, bit-flip | ✅ | |
 | **Code Generator** | ✅ Complete | `wasm/codegen.py` |
 | Number/string/boolean literals | ✅ | |
 | Variable lookup from environment | ✅ | |
@@ -64,19 +73,19 @@
 | Component | Status | Notes |
 |-----------|--------|-------|
 | **Tail Call Optimization** | ⏳ Pending | Use WASM `return_call` for tail-recursive functions |
-| **Bitwise Operations** | ⏳ Pending | bit-and, bit-or, bit-xor, bit-not, bit-shift |
-| **Alist Operations** | ⏳ Pending | alist-get, alist-set, alist-has, alist-remove, etc. |
 | **Comprehensive Test Suite** | ⏳ Pending | Full conformance tests against interpreter |
 | **Documentation** | ⏳ Pending | API docs, usage examples |
 
 ### Test Results
 
-**Runtime Tests: 26/27 passing**
+**Runtime Tests: 54/55 passing**
 
 - Arithmetic: 10/11 (power has floating-point precision: 7.999999999999994 vs 8)
 - Comparison: 5/5
 - Boolean: 6/6
 - List: 5/5
+- Alist: 12/12
+- Bitwise: 16/16
 
 ### Known Limitations
 
@@ -508,7 +517,7 @@ The generated WASM module will have:
 
 ### Phase 3: Data Structures ✅ Complete
 1. ✅ List construction and operations
-2. ⏳ Alist construction and operations (partial)
+2. ✅ Alist construction and operations
 3. ✅ Quote expressions
 
 ### Phase 4: Functions ✅ Complete
@@ -522,7 +531,7 @@ The generated WASM module will have:
 1. ✅ Pattern matching
 2. ⏳ Tail call optimization
 3. ✅ Complex numbers (arithmetic support)
-4. ⏳ Bitwise operations
+4. ✅ Bitwise operations
 
 ### Phase 6: Testing & Polish (In Progress)
 1. ⏳ Comprehensive test suite
@@ -585,6 +594,8 @@ src/aifpl/
     ├── comparison.py        # Comparison and boolean operations
     ├── lists.py             # List operations and higher-order functions
     ├── strings.py           # String operations
+    ├── alist.py             # Association list operations
+    ├── bitwise.py           # Bitwise operations
     ├── codegen.py           # WAT code generator
     └── compiler.py          # Main compiler class
 

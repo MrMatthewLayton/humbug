@@ -16,6 +16,8 @@ from aifpl.wasm.arithmetic import ARITHMETIC_LIBRARY_WAT
 from aifpl.wasm.comparison import COMPARISON_LIBRARY_WAT
 from aifpl.wasm.lists import LIST_LIBRARY_WAT
 from aifpl.wasm.strings import STRING_LIBRARY_WAT
+from aifpl.wasm.alist import ALIST_LIBRARY_WAT
+from aifpl.wasm.bitwise import BITWISE_LIBRARY_WAT
 from aifpl.wasm.codegen import CodeGenerator
 
 
@@ -102,6 +104,10 @@ class AIFPLWasmCompiler:
 {LIST_LIBRARY_WAT}
 
 {STRING_LIBRARY_WAT}
+
+{ALIST_LIBRARY_WAT}
+
+{BITWISE_LIBRARY_WAT}
 
 {self._generate_environment_functions()}
 
@@ -377,6 +383,10 @@ class AIFPLWasmCompiler:
 {LIST_LIBRARY_WAT}
 
 {STRING_LIBRARY_WAT}
+
+{ALIST_LIBRARY_WAT}
+
+{BITWISE_LIBRARY_WAT}
 
 {self._generate_environment_functions()}
 
