@@ -13,6 +13,9 @@ dependencies = [
     "qasync"
 ]
 
+[project.optional-dependencies]
+wasm = ["wasmtime>=27.0"]
+
 [tool.coverage.run]
 source = ["metaphor"]
 branch = true
